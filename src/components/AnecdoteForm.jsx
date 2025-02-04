@@ -1,17 +1,20 @@
-import { useState } from 'react'
+import { useState } from 'react';
+import { useNotification } from '../NotificationContext';
 
 const AnecdoteForm = ({ onCreate }) => {
-  const [content, setContent] = useState('')
+  const [content, setContent] = useState('');
+  const { setNotification } = useNotification();
 
   const handleSubmit = (event) => {
-    event.preventDefault()
+    event.preventDefault();
     if (content.length < 5) {
-      alert('Anecdote must be at least 5 characters long!')
-      return
+      setNotification('Anecdote must be at least 5 characters long!');
+      return;
     }
-    onCreate({ content, votes: 0 }) // Lähetetään palvelimelle
-    setContent('') // Tyhjennetään input
-  }
+    onCreate({ content, votes: 0 });
+    setContent('');
+    setNotification(`Anecdote '${content}' created!`);
+  };
 
   return (
     <div>
@@ -25,7 +28,7 @@ const AnecdoteForm = ({ onCreate }) => {
         <button type="submit">create</button>
       </form>
     </div>
-  )
-}
+  );
+};
 
-export default AnecdoteForm
+export default AnecdoteForm;

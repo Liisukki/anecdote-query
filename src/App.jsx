@@ -1,56 +1,54 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import axios from 'axios'
-import AnecdoteForm from './components/AnecdoteForm'
-import Notification from './components/Notification'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import axios from 'axios';
+import AnecdoteForm from './components/AnecdoteForm';
+import Notification from './components/Notification';
+import { NotificationProvider, useNotification } from './NotificationContext';
 
-// ✅ Hakee kaikki anekdootit palvelimelta
 const getAnecdotes = async () => {
-  const { data } = await axios.get('http://localhost:3001/anecdotes')
-  return data
-}
+  const { data } = await axios.get('http://localhost:3001/anecdotes');
+  return data;
+};
 
-// ✅ Lisää uuden anekdootin palvelimelle
 const createAnecdote = async (newAnecdote) => {
-  const { data } = await axios.post('http://localhost:3001/anecdotes', newAnecdote)
-  return data
-}
+  const { data } = await axios.post('http://localhost:3001/anecdotes', newAnecdote);
+  return data;
+};
 
-// ✅ Päivittää anekdootin äänimäärän palvelimella
 const updateAnecdote = async (anecdote) => {
-  const { data } = await axios.put(`http://localhost:3001/anecdotes/${anecdote.id}`, anecdote)
-  return data
-}
+  const { data } = await axios.put(`http://localhost:3001/anecdotes/${anecdote.id}`, anecdote);
+  return data;
+};
 
-const App = () => {
-  const queryClient = useQueryClient()
+const AppContent = () => {
+  const queryClient = useQueryClient();
+  const { setNotification } = useNotification();
 
-  // ✅ Hakee anekdootit palvelimelta
   const { data: anecdotes, error, isLoading } = useQuery({
     queryKey: ['anecdotes'],
     queryFn: getAnecdotes,
     retry: false
-  })
+  });
 
-  // ✅ Lisää uuden anekdootin ja päivittää listan
   const newAnecdoteMutation = useMutation({
     mutationFn: createAnecdote,
     onSuccess: (newAnecdote) => {
-      queryClient.setQueryData(['anecdotes'], (oldData) => [...oldData, newAnecdote])
+      queryClient.setQueryData(['anecdotes'], (oldData) => [...oldData, newAnecdote]);
+      setNotification(`Anecdote '${newAnecdote.content}' created!`);
     }
-  })
+  });
 
-  // ✅ Päivittää anekdootin äänimäärän ja päivittää listan
   const voteAnecdoteMutation = useMutation({
     mutationFn: updateAnecdote,
     onSuccess: (updatedAnecdote) => {
       queryClient.setQueryData(['anecdotes'], (oldData) =>
         oldData.map(anecdote => anecdote.id === updatedAnecdote.id ? updatedAnecdote : anecdote)
-      )
+      );
+      setNotification(`Anecdote '${updatedAnecdote.content}' received a vote!`);
     }
-  })
+  });
 
-  if (isLoading) return <div>loading data...</div>
-  if (error) return <div>anecdote service not available due to problems in server</div>
+  if (isLoading) return <div>loading data...</div>;
+  if (error) return <div>anecdote service not available due to problems in server</div>;
 
   return (
     <div>
@@ -69,7 +67,13 @@ const App = () => {
         </div>
       ))}
     </div>
-  )
-}
+  );
+};
 
-export default App
+const App = () => (
+  <NotificationProvider>
+    <AppContent />
+  </NotificationProvider>
+);
+
+export default App;
