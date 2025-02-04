@@ -1,4 +1,3 @@
-// Notification.jsx
 import { useNotification } from '../NotificationContext';
 
 const Notification = () => {
